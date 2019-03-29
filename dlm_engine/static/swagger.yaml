@@ -1,0 +1,1061 @@
+swagger: '2.0'
+info:
+  description: This is the Deployer API server
+  version: 1.0.0
+  title: Swagger Deployer
+  contact:
+    email: stephan.schultchen@gmail.com
+  license:
+    name: MIT
+    url: 'https://opensource.org/licenses/MIT'
+#host: 'localhost:9000'
+basePath: /api/v1
+tags:
+  - name: Authenticate
+    description: Authentication Related Stuff
+  - name: Locks
+    description: Lock Related Stuff
+  - name: Permissions
+    description: Authentication Related Stuff
+  - name: Users
+    description: Authentication Related Stuff
+schemes:
+  - http
+  - https
+paths:
+  '/authenticate':
+    delete:
+      tags:
+        - Authenticate
+      description: Delete current authentication token
+      responses:
+        '200':
+          description: Empty response on success
+    post:
+      tags:
+        - Authenticate
+      description: Authenticate user and return authentication token
+      parameters:
+        - name: body
+          in: body
+          description: Authentication credentials
+          schema:
+            $ref: '#/definitions/Authenticate_POST'
+      responses:
+        '201':
+          description: 'Empty response, with session headers set, on success'
+          schema:
+            $ref: '#/definitions/Authenticate_POST_result'
+        '400':
+          description: One or More parameters are invalid
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: >-
+            Invalid authentication information, or valid authentication token
+            present
+          schema:
+            $ref: '#/definitions/Error'
+  '/locks/{lock}':
+    delete:
+      tags:
+        - Locks
+      description: Release lock.
+      parameters:
+        - name: lock
+          in: path
+          description: Lock Name
+          required: true
+          type: string
+        - name: body
+          in: body
+          description: JSON Document with attributes that should be updated
+          schema:
+            $ref: '#/definitions/Lock_DELETE'
+      responses:
+        '200':
+          description: Empty response on success
+        '403':
+          description: Insufficient Permissions
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: ID not found
+          schema:
+            $ref: '#/definitions/Error'
+    get:
+      tags:
+        - Locks
+      description: Get matching lock
+      parameters:
+        - name: lock
+          in: path
+          description: Lock Name
+          required: true
+          type: string
+        - name: fields
+          in: query
+          description: Filter Attributes that should be returned
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Lock Resource
+          schema:
+            $ref: '#/definitions/Lock_GET'
+        '403':
+          description: Insufficient Permissions
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      tags:
+        - Locks
+      description: Aquire lock.
+      parameters:
+        - name: lock
+          in: path
+          description: Lock Name
+          required: true
+          type: string
+        - name: body
+          in: body
+          description: JSON Document with attributes that should be updated
+          schema:
+            $ref: '#/definitions/Lock_POST'
+      responses:
+        '200':
+          description: Lock Resource
+          schema:
+            $ref: '#/definitions/Lock_GET'
+        '403':
+          description: Insufficient Permissions
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: ID not found
+          schema:
+            $ref: '#/definitions/Error'
+  '/locks/_search':
+    get:
+      tags:
+        - Locks
+      description: Get all matching Locks
+      parameters:
+        - name: locks
+          in: query
+          description: 'filter: regular expression'
+          required: false
+          type: string
+        - name: acquired_by
+          in: query
+          description: 'filter: regular expression'
+          required: false
+          type: string
+        - name: fields
+          in: query
+          description: Filter Attributes that should be returned
+          required: false
+          type: string
+        - name: sort
+          in: query
+          description: >-
+            Comma separated list of attributes to sort result, valid values are
+            id, lock and user, prefix with - to change order
+          required: false
+          type: string
+        - name: page
+          in: query
+          description: pagination index
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          description: pagination limit
+          required: false
+          type: integer
+      responses:
+        '200':
+          description: List of lock objects
+          schema:
+            $ref: '#/definitions/Lock_GETQ'
+        '403':
+          description: Insufficient Permissions
+          schema:
+            $ref: '#/definitions/Error'
+  '/permissions/{permission}':
+    delete:
+      tags:
+        - Permissions
+      description: Delete existing permission.
+      parameters:
+        - name: permission
+          in: path
+          description: Permission Name
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Empty response on success
+        '403':
+          description: Insufficient permission
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: ID not found
+          schema:
+            $ref: '#/definitions/Error'
+    get:
+      tags:
+        - Permissions
+      description: Get matching permission
+      parameters:
+        - name: permission
+          in: path
+          description: Permission Name
+          required: true
+          type: string
+        - name: fields
+          in: query
+          description: Filter Attributes that should be returned
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Permission Resource
+          schema:
+            $ref: '#/definitions/Permission_GET'
+        '403':
+          description: Insufficient permission
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      tags:
+        - Permissions
+      description: |-
+        Create a new permission, there can only be one permission object
+        per user id / scope id combination.
+      parameters:
+        - name: permission
+          in: path
+          description: Permission Name
+          required: true
+          type: string
+        - name: body
+          in: body
+          description: The resource JSON representation you want to create
+          schema:
+            $ref: '#/definitions/Permission_POST'
+      responses:
+        '201':
+          description: Created resource
+          schema:
+            $ref: '#/definitions/Permission_GET'
+        '400':
+          description: One or More parameters are invalid
+          schema:
+            $ref: '#/definitions/Error'
+        '409':
+          description: ID already exists
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      tags:
+        - Permissions
+      description: Update existing permission.
+      parameters:
+        - name: permission
+          in: path
+          description: Permission Name
+          required: true
+          type: string
+        - name: body
+          in: body
+          description: JSON Document with attributes that should be updated
+          schema:
+            $ref: '#/definitions/Permission_PUT'
+      responses:
+        '200':
+          description: Permission Resource
+          schema:
+            $ref: '#/definitions/Permission_GET'
+        '403':
+          description: Insufficient permission
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: ID not found
+          schema:
+            $ref: '#/definitions/Error'
+  '/permissions/_search':
+    get:
+      tags:
+        - Permissions
+      description: Get all matching Permissions
+      parameters:
+        - name: permissions
+          in: query
+          description: 'filter: comma separated list of permissions'
+          required: false
+          type: string
+        - name: user
+          in: query
+          description: 'filter: comma separated list of user ids'
+          required: false
+          type: string
+        - name: fields
+          in: query
+          description: Filter Attributes that should be returned
+          required: false
+          type: string
+        - name: sort
+          in: query
+          description: >-
+            Comma separated list of attributes to sort result, valid values are
+            id, permission and user, prefix with - to change order
+          required: false
+          type: string
+        - name: page
+          in: query
+          description: pagination index
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          description: pagination limit
+          required: false
+          type: integer
+      responses:
+        '200':
+          description: List of permission objects
+          schema:
+            $ref: '#/definitions/Permission_GETQ'
+        '403':
+          description: Insufficient permission
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/{user}':
+    delete:
+      tags:
+        - Users
+      description: Delete existing user.
+      parameters:
+        - name: user
+          in: path
+          description: User ID
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Empty response on success
+        '403':
+          description: Insufficient permission
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: ID not found
+          schema:
+            $ref: '#/definitions/Error'
+    get:
+      tags:
+        - Users
+      description: Get get user
+      parameters:
+        - name: user
+          in: path
+          description: User ID
+          required: true
+          type: string
+        - name: fields
+          in: query
+          description: Filter Attributes that should be returned
+          required: false
+          type: string
+      responses:
+        '200':
+          description: User Resource
+          schema:
+            $ref: '#/definitions/User_GET'
+        '403':
+          description: Insufficient permission
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: ID not found
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      tags:
+        - Users
+      description: 'Create a new user, user id must be unique'
+      parameters:
+        - name: user
+          in: path
+          description: User ID
+          required: true
+          type: string
+        - name: body
+          in: body
+          description: The user JSON representation you want to create
+          schema:
+            $ref: '#/definitions/User_POST'
+      responses:
+        '201':
+          description: Created resource
+          schema:
+            $ref: '#/definitions/User_GET'
+        '400':
+          description: One or More parameters are invalid
+          schema:
+            $ref: '#/definitions/Error'
+        '409':
+          description: ID already exists
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      tags:
+        - Users
+      description: Update existing user.
+      parameters:
+        - name: user
+          in: path
+          description: User ID
+          required: true
+          type: string
+        - name: body
+          in: body
+          description: JSON Document with attributes that should be updated
+          schema:
+            $ref: '#/definitions/User_PUT'
+      responses:
+        '200':
+          description: User Resource
+          schema:
+            $ref: '#/definitions/User_GET'
+        '403':
+          description: Insufficient permission
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: ID not found
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/{user}/credentials/{credential}':
+    delete:
+      tags:
+        - Users
+      description: Delete user API credential.
+      parameters:
+        - name: credential
+          in: path
+          description: Credential ID
+          required: true
+          type: string
+        - name: user
+          in: path
+          description: User ID
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Empty response on success
+        '403':
+          description: Insufficient permission
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: ID not found
+          schema:
+            $ref: '#/definitions/Error'
+    get:
+      tags:
+        - Users
+      description: Get User API Credentials Resource
+      parameters:
+        - name: credential
+          in: path
+          description: Credential ID
+          required: true
+          type: string
+        - name: user
+          in: path
+          description: User ID
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Credential Resource
+          schema:
+            $ref: '#/definitions/Common_Credential_GET'
+        '403':
+          description: Insufficient permission
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: ID not found
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      tags:
+        - Users
+      description: Update credential description
+      parameters:
+        - name: credential
+          in: path
+          description: Credential ID
+          required: true
+          type: string
+        - name: user
+          in: path
+          description: User ID
+          required: true
+          type: string
+        - name: body
+          in: body
+          description: updated description
+          schema:
+            $ref: '#/definitions/Common_Credential_POST'
+      responses:
+        '200':
+          description: Credential Resource
+          schema:
+            $ref: '#/definitions/Common_Credential_GET'
+        '403':
+          description: Insufficient permission
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: ID not found
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/{user}/credentials':
+    get:
+      tags:
+        - Users
+      description: Get all credentials for this user
+      parameters:
+        - name: user
+          in: path
+          description: User ID
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Document with all credentials for this scope
+          schema:
+            $ref: '#/definitions/Common_Credential_GETQ'
+        '403':
+          description: Insufficient permission
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: ID not found
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      tags:
+        - Users
+      description: Create a new set of API credentials for this user
+      parameters:
+        - name: user
+          in: path
+          description: User ID
+          required: true
+          type: string
+        - name: body
+          in: body
+          description: Description of the credential that is beeing created
+          schema:
+            $ref: '#/definitions/Common_Credential_POST'
+      responses:
+        '200':
+          description: Scope Credentials Resource
+          schema:
+            $ref: '#/definitions/Common_Credential_POST_Result'
+        '403':
+          description: Insufficient permission
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: ID not found
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/_search':
+    get:
+      tags:
+        - Users
+      description: Get all matching Users
+      parameters:
+        - name: id
+          in: query
+          description: 'filter: regular expression'
+          required: false
+          type: string
+        - name: fields
+          in: query
+          description: Filter Attributes that should be returned
+          required: false
+          type: string
+        - name: sort
+          in: query
+          description: >-
+            Comma separated list of attributes to sort result, valid values are
+            id, email, name, admin, prefix with - to change order
+          required: false
+          type: string
+        - name: page
+          in: query
+          description: pagination index
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          description: pagination limit
+          required: false
+          type: integer
+      responses:
+        '200':
+          description: List of user object
+          schema:
+            $ref: '#/definitions/User_GETQ'
+        '403':
+          description: Insufficient permission
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/_self':
+    delete:
+      tags:
+        - Users
+      description: Delete existing user.
+      responses:
+        '200':
+          description: Empty response on success
+        '403':
+          description: Insufficient permission
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: ID not found
+          schema:
+            $ref: '#/definitions/Error'
+    get:
+      tags:
+        - Users
+      description: 'Return user resource, of the user executing this request.'
+      responses:
+        '201':
+          description: Created resource
+          schema:
+            $ref: '#/definitions/User_GET'
+        '404':
+          description: ID not found
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      tags:
+        - Users
+      description: Update existing user.
+      parameters:
+        - name: body
+          in: body
+          description: JSON Document with attributes that should be updated
+          schema:
+            $ref: '#/definitions/User_PUT'
+      responses:
+        '200':
+          description: User Resource
+          schema:
+            $ref: '#/definitions/User_GET'
+        '403':
+          description: Insufficient permission
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: ID not found
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/_self/credentials/{credential}':
+    delete:
+      tags:
+        - Users
+      description: Delete user API credential.
+      parameters:
+        - name: credential
+          in: path
+          description: Credential ID
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Empty response on success
+        '403':
+          description: Insufficient permission
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: ID not found
+          schema:
+            $ref: '#/definitions/Error'
+    get:
+      tags:
+        - Users
+      description: Get User API Credentials Resource
+      parameters:
+        - name: credential
+          in: path
+          description: Credential ID
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Credential Resource
+          schema:
+            $ref: '#/definitions/Common_Credential_GET'
+        '403':
+          description: Insufficient permission
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: ID not found
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      tags:
+        - Users
+      description: update credential description
+      parameters:
+        - name: credential
+          in: path
+          description: Credential ID
+          required: true
+          type: string
+        - name: body
+          in: body
+          description: updated description
+          schema:
+            $ref: '#/definitions/Common_Credential_POST'
+      responses:
+        '200':
+          description: Credential Resource
+          schema:
+            $ref: '#/definitions/Common_Credential_GET'
+        '403':
+          description: Insufficient permission
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: ID not found
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/_self/credentials':
+    get:
+      tags:
+        - Users
+      description: Get all credentials for this user
+      responses:
+        '200':
+          description: Document with all credentials for this scope
+          schema:
+            $ref: '#/definitions/Common_Credential_GETQ'
+        '403':
+          description: Insufficient permission
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: ID not found
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      tags:
+        - Users
+      description: Create a new set of API credentials for this user
+      parameters:
+        - name: body
+          in: body
+          description: Description of the credential that is beeing created
+          schema:
+            $ref: '#/definitions/Common_Credential_POST'
+      responses:
+        '200':
+          description: Scope Credentials Resource
+          schema:
+            $ref: '#/definitions/Common_Credential_POST_Result'
+        '403':
+          description: Insufficient permission
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: ID not found
+          schema:
+            $ref: '#/definitions/Error'
+definitions:
+  Authenticate_POST:
+    type: object
+    required:
+      - data
+    properties:
+      data:
+        type: object
+        required:
+          - user
+          - password
+        properties:
+          user:
+            type: string
+          password:
+            type: string
+  Authenticate_POST_result:
+    type: object
+    properties:
+      data:
+        type: object
+        properties:
+          id:
+            type: string
+          token:
+            type: string
+  Common_Credential_GET:
+    type: object
+    properties:
+      data:
+        type: object
+        properties:
+          id:
+            type: string
+          created:
+            type: string
+          description:
+            type: string
+  Common_Credential_GETQ:
+    type: object
+    properties:
+      data:
+        type: object
+        properties:
+          results:
+            type: array
+            items:
+              $ref: '#/definitions/Common_Credential_GET'
+  Common_Credential_POST:
+    type: object
+    required:
+      - data
+    properties:
+      data:
+        type: object
+        required:
+          - description
+        properties:
+          description:
+            type: string
+  Common_Credential_POST_Result:
+    type: object
+    properties:
+      data:
+        type: object
+        properties:
+          id:
+            type: string
+          created:
+            type: string
+          description:
+            type: string
+          secret:
+            type: string
+  Error:
+    type: object
+    properties:
+      errors:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            detail:
+              type: string
+            title:
+              type: string
+  Lock_GET:
+    type: object
+    properties:
+      data:
+        type: object
+        properties:
+          id:
+            type: string
+          acquired_by:
+            type: string
+          acquired_since:
+            type: string
+            format: date-time
+  Lock_GETQ:
+    type: object
+    properties:
+      data:
+        type: object
+        properties:
+          results:
+            type: array
+            items:
+              $ref: '#/definitions/Lock_GET'
+  Lock_DELETE:
+    type: object
+    required:
+      - data
+    properties:
+      data:
+        type: object
+        properties:
+          force:
+            type: boolean
+            enum:
+              - true
+          acquired_by:
+            type: string
+          secret:
+            type: string
+  Lock_POST:
+    type: object
+    required:
+      - data
+    properties:
+      data:
+        type: object
+        required:
+          - "acquired_by"
+        properties:
+          acquired_by:
+            type: string
+          secret:
+            type: string
+  Permission_GET:
+    type: object
+    properties:
+      data:
+        type: object
+        properties:
+          id:
+            type: string
+          permissions:
+            type: array
+            items:
+              type: string
+          users:
+            type: array
+            items:
+              type: string
+  Permission_GETQ:
+    type: object
+    properties:
+      data:
+        type: object
+        properties:
+          results:
+            type: array
+            items:
+              $ref: '#/definitions/Permission_GET'
+  Permission_POST:
+    type: object
+    required:
+      - data
+    properties:
+      data:
+        type: object
+        required:
+          - 'permissions'
+          - 'users'
+        properties:
+          permissions:
+            type: array
+            items:
+              type: string
+              pattern: '^(LOCK(:ACQUIRE_RELEASE|:DELETE|:GET)?)$'
+          users:
+            type: array
+            items:
+              type: string
+  Permission_PUT:
+    required:
+      - data
+    type: object
+    properties:
+      data:
+        type: object
+        properties:
+          permissions:
+            type: array
+            items:
+              type: string
+              pattern: '^(LOCK(:ACQUIRE_RELEASE|:DELETE|:GET)?)$'
+          users:
+            type: array
+            items:
+              type: string
+  User_GET:
+    type: object
+    properties:
+      data:
+        type: object
+        properties:
+          id:
+            type: string
+          backend:
+            type: string
+          backend_ref:
+            type: string
+          admin:
+            type: boolean
+          email:
+            type: string
+          name:
+            type: string
+  User_GETQ:
+    type: object
+    properties:
+      data:
+        type: object
+        properties:
+          results:
+            type: array
+            items:
+              $ref: '#/definitions/User_GET'
+  User_POST:
+    type: object
+    additionalProperties: false
+    required:
+      - data
+    properties:
+      data:
+        type: object
+        additionalProperties: false
+        required:
+          - email
+          - name
+          - password
+        properties:
+          admin:
+            type: boolean
+          email:
+            type: string
+          name:
+            type: string
+          password:
+            type: string
+  User_PUT:
+    type: object
+    additionalProperties: false
+    required:
+      - data
+    properties:
+      data:
+        type: object
+        additionalProperties: false
+        properties:
+          admin:
+            type: boolean
+          email:
+            type: string
+          name:
+            type: string
+          password:
+            type: string

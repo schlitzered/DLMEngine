@@ -173,31 +173,30 @@ paths:
           required: false
           schema:
             type: string
-        - name: fields
+        -
+          description: "Filter attributes, valid values: id, acquired_by, acquired_since"
           in: query
-          description: Filter Attributes that should be returned
+          name: fields
           required: false
-          schema:
-            type: string
-        - name: sort
+          type: string
+        -
+          description: "Sort results, prefix with - to invert, valid values: id"
           in: query
-          description: Comma separated list of attributes to sort result, valid values are
-            id, lock and user, prefix with - to change order
+          name: sort
           required: false
-          schema:
-            type: string
-        - name: page
+          type: string
+        -
+          description: "pagination index"
           in: query
-          description: pagination index
+          name: page
           required: false
-          schema:
-            type: integer
-        - name: limit
+          type: integer
+        -
+          description: "pagination limit, valid values: 10, 25, 50, 100, 250, 500, 1000"
           in: query
-          description: pagination limit
+          name: limit
           required: false
-          schema:
-            type: integer
+          type: integer
       responses:
         "200":
           description: List of lock objects

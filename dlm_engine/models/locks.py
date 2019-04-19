@@ -6,24 +6,30 @@ import pymongo
 import pymongo.errors
 
 from dlm_engine.models.mixins import Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, SortMixIn
-from dlm_engine.errors import MongoConnError, PermError, ResourceNotFound, DuplicateResource
+from dlm_engine.models.mixins import pagination_from_schema
+from dlm_engine.models.mixins import projection_from_schema
+from dlm_engine.models.mixins import sort_from_schema
+from dlm_engine.errors import MongoConnError, ResourceNotFound, DuplicateResource
+from dlm_engine.schemes import schemes
 
 
 class Locks(Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, SortMixIn):
     def __init__(self, coll):
         super().__init__()
-        self.projection_fields = {
-            '_id': 1,
-            'acquired_by': 1,
-            'acquired_since': 1
-        }
-        self.sort_fields = [
-            ('_id', pymongo.ASCENDING),
-        ]
+        self.pagination_steps = pagination_from_schema(
+            schema=schemes, path='/locks/_search'
+        )
+        self.pagination_limit = self.pagination_steps[-1]
+        self.projection_fields = projection_from_schema(
+            schema=schemes, path='/locks/_search'
+        )
+        self.sort_fields = sort_from_schema(
+            schema=schemes, path='/locks/_search'
+        )
         self._coll = coll
 
     async def create(self, _id, payload):
-        payload['_id'] = _id
+        payload['id'] = _id
         payload['acquired_since'] = datetime.datetime.utcnow()
         try:
             await self._coll.insert_one(payload)
@@ -37,12 +43,12 @@ class Locks(Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, SortMixIn
         try:
             if 'force' in payload:
                 result = await self._coll.delete_one(filter={
-                    '_id': _id,
+                    'id': _id,
 
                 })
             else:
                 query = {
-                    '_id': _id,
+                    'id': _id,
                     'acquired_by': payload['acquired_by'],
                 }
                 if 'secret' in payload:
@@ -61,7 +67,7 @@ class Locks(Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, SortMixIn
         try:
             result = await self._coll.find_one(
                 filter={
-                    '_id': _id,
+                    'id': _id,
                 },
                 projection=self._projection(fields)
             )
@@ -77,7 +83,7 @@ class Locks(Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, SortMixIn
             self, locks=None, acquired_by=None,
             fields=None, sort=None, page=None, limit=None):
         query = {}
-        self._filter_re(query, '_id', locks)
+        self._filter_re(query, 'id', locks)
         self._filter_re(query, 'acquired_by', acquired_by)
         try:
             cursor = self._coll.find(

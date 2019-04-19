@@ -13,6 +13,40 @@ from dlm_engine.errors import InvalidSortCriteria
 from dlm_engine.errors import InvalidUUID
 
 
+def pagination_from_schema(schema, path):
+    for item in schema['paths'][path]['get']['parameters']:
+        if item['name'] == 'limit':
+            fields = (item['description'].split(':', maxsplit=1)[1].split(','))
+            fields = [x.strip(' ') for x in fields]
+            result = list()
+            for field in fields:
+                result.append(int(field))
+            result.sort()
+            return result
+
+
+def projection_from_schema(schema, path):
+    for item in schema['paths'][path]['get']['parameters']:
+        if item['name'] == 'fields':
+            fields = (item['description'].split(':', maxsplit=1)[1].split(','))
+            fields = [x.strip(' ') for x in fields]
+            result = dict()
+            for field in fields:
+                result[field] = 1
+            return result
+
+
+def sort_from_schema(schema, path):
+    for item in schema['paths'][path]['get']['parameters']:
+        if item['name'] == 'sort':
+            fields = (item['description'].split(':', maxsplit=1)[1].split(','))
+            fields = [x.strip(' ') for x in fields]
+            result = list()
+            for field in fields:
+                result.append([field, pymongo.ASCENDING])
+            return result
+
+
 class ID(object):
     @staticmethod
     def _str_uuid_2_bin(_id):
@@ -43,13 +77,12 @@ class ID(object):
 
 class Format(object):
     @staticmethod
-    def _format(item, multi=False):
-        try:
-            item['id'] = item.pop('_id')
-        except (IndexError, TypeError, KeyError):
-            pass
+    def _format(item, multi=False, keep_id=False):
         if multi:
             return {"data": {"results": item}}
+        else:
+            if not keep_id:
+                item.pop('_id', None)
         return {"data": item}
 
 
@@ -93,8 +126,6 @@ class ProjectionMixIn(object):
             return self.projection_fields
         fields = fields.split(sep=',')
         for field in fields:
-            if field == 'id':
-                field = '_id'
             if field not in self.projection_fields:
                 raise InvalidFields('{0} is not a valid field'.format(field))
         result = {}

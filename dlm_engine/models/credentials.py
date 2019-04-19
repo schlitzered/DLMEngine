@@ -21,7 +21,7 @@ class Credentials(Format, FilterMixIn, ProjectionMixIn, ID):
     def __init__(self, coll):
         super().__init__()
         self.projection_fields = {
-            '_id': 1,
+            'id': 1,
             'created': 1,
             'description': 1
         }
@@ -35,7 +35,7 @@ class Credentials(Format, FilterMixIn, ProjectionMixIn, ID):
         try:
             result = await self._coll.find_one(
                 filter={
-                    '_id': self._str_uuid_2_bin(credentials['_id'])
+                    'id': self._str_uuid_2_bin(credentials['id'])
                 },
             )
             if not result:
@@ -51,7 +51,7 @@ class Credentials(Format, FilterMixIn, ProjectionMixIn, ID):
         secret = ''.join(random.SystemRandom().choice(
             string.ascii_letters + string.digits + '_-.') for _ in range(128))
         created = datetime.datetime.utcnow()
-        payload['_id'] = Binary(_id.bytes, STANDARD)
+        payload['id'] = Binary(_id.bytes, STANDARD)
         payload['secret'] = self._create_secret(str(secret))
         payload['created'] = created
         payload['owner'] = owner
@@ -60,7 +60,7 @@ class Credentials(Format, FilterMixIn, ProjectionMixIn, ID):
         except pymongo.errors.ConnectionFailure as err:
             raise MongoConnError(err)
         result = {
-            '_id': str(_id),
+            'id': str(_id),
             'created': str(created),
             'description': payload['description'],
             'secret': str(secret)
@@ -71,7 +71,7 @@ class Credentials(Format, FilterMixIn, ProjectionMixIn, ID):
         try:
             result = await self._coll.delete_one(
                 filter={
-                    '_id': self._str_uuid_2_bin(_id),
+                    'id': self._str_uuid_2_bin(_id),
                     'owner': owner
                 }
             )
@@ -93,14 +93,14 @@ class Credentials(Format, FilterMixIn, ProjectionMixIn, ID):
         try:
             result = await self._coll.find_one(
                 filter={
-                    '_id': self._str_uuid_2_bin(_id),
+                    'id': self._str_uuid_2_bin(_id),
                     'owner': owner}
                 ,
                 projection=self._projection()
             )
             if result is None:
                 raise ResourceNotFound(_id)
-            result['_id'] = _id
+            result['id'] = _id
             if 'created' in result:
                 result['created'] = str(result['created'])
             return self._format(result)
@@ -115,7 +115,7 @@ class Credentials(Format, FilterMixIn, ProjectionMixIn, ID):
             )
             result = list()
             for item in await cursor.to_list(1000):
-                item['_id'] = str(item['_id'])
+                item['id'] = str(item['id'])
                 item['created'] = str(item['created'])
                 result.append(self._format(item))
             return self._format(result, multi=True)
@@ -129,7 +129,7 @@ class Credentials(Format, FilterMixIn, ProjectionMixIn, ID):
         try:
             result = await self._coll.find_one_and_update(
                 filter={
-                    '_id': self._str_uuid_2_bin(_id),
+                    'id': self._str_uuid_2_bin(_id),
                     'owner': owner
                 },
                 update=update,
@@ -142,5 +142,5 @@ class Credentials(Format, FilterMixIn, ProjectionMixIn, ID):
             raise ResourceNotFound(_id)
         if 'created' in result:
             result['created'] = str(result['created'])
-        result['_id'] = _id
+        result['id'] = _id
         return self._format(result)

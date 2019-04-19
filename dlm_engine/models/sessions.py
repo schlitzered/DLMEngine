@@ -40,7 +40,7 @@ class Sessions(Format):
             await self.init_redis()
         await self.redis.set(sid, user)
         await self.redis.expire(sid, 3600)
-        return self._format({'_id': sid})
+        return self._format({'id': sid})
 
     async def delete(self, request):
         sid = request.cookies.get('DEPLOYER_SESSION')
@@ -63,6 +63,6 @@ class Sessions(Format):
         user = await self.redis.get(sid)
         if user is not None:
             await self.redis.expire(sid, 3600)
-            return self._format({'_id': sid, 'user': user})
+            return self._format({'id': sid, 'user': user})
         raise SessionError
 

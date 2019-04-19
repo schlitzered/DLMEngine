@@ -4,20 +4,26 @@ import pymongo
 import pymongo.errors
 
 from dlm_engine.models.mixins import Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, SortMixIn
+from dlm_engine.models.mixins import pagination_from_schema
+from dlm_engine.models.mixins import projection_from_schema
+from dlm_engine.models.mixins import sort_from_schema
 from dlm_engine.errors import MongoConnError, PermError, ResourceNotFound, DuplicateResource
+from dlm_engine.schemes import schemes
 
 
 class Permissions(Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, SortMixIn):
     def __init__(self, coll):
         super().__init__()
-        self.projection_fields = {
-            '_id': 1,
-            'permissions': 1,
-            'users': 1
-        }
-        self.sort_fields = [
-            ('_id', pymongo.ASCENDING),
-        ]
+        self.pagination_steps = pagination_from_schema(
+            schema=schemes, path='/permissions/_search'
+        )
+        self.pagination_limit = self.pagination_steps[-1]
+        self.projection_fields = projection_from_schema(
+            schema=schemes, path='/permissions/_search'
+        )
+        self.sort_fields = sort_from_schema(
+            schema=schemes, path='/permissions/_search'
+        )
         self._coll = coll
 
     async def check(self, user, fields, permission=None, _perm_orig=None):
@@ -49,7 +55,7 @@ class Permissions(Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, Sor
             raise MongoConnError(err)
 
     async def create(self, _id, payload):
-        payload['_id'] = _id
+        payload['id'] = _id
         payload['deleting'] = False
         try:
             await self._coll.insert_one(payload)
@@ -62,7 +68,7 @@ class Permissions(Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, Sor
     async def delete(self, _id):
         try:
             result = await self._coll.delete_one(filter={
-                '_id': _id,
+                'id': _id,
             })
         except pymongo.errors.ConnectionFailure as err:
             raise MongoConnError(err)
@@ -74,7 +80,7 @@ class Permissions(Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, Sor
         update = {'$set': {'deleting': True}}
         try:
             await self._coll.update_one(
-                filter={'_id': _id},
+                filter={'id': _id},
                 update=update,
             )
         except pymongo.errors.ConnectionFailure as err:
@@ -84,7 +90,7 @@ class Permissions(Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, Sor
         try:
             result = await self._coll.find_one(
                 filter={
-                    '_id': _id,
+                    'id': _id,
                     'deleting': False
                 },
                 projection=self._projection(fields)
@@ -132,7 +138,7 @@ class Permissions(Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, Sor
             update['$set'][k] = v
         try:
             result = await self._coll.find_one_and_update(
-                filter={'_id': _id},
+                filter={'id': _id},
                 update=update,
                 projection=self._projection(),
                 return_document=pymongo.ReturnDocument.AFTER

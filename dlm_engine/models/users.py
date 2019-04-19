@@ -5,26 +5,26 @@ import pymongo
 import pymongo.errors
 
 from dlm_engine.models.mixins import Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, SortMixIn
+from dlm_engine.models.mixins import pagination_from_schema
+from dlm_engine.models.mixins import projection_from_schema
+from dlm_engine.models.mixins import sort_from_schema
 from dlm_engine.errors import AuthenticationError, MongoConnError, DuplicateResource, ResourceNotFound
+from dlm_engine.schemes import schemes
 
 
 class Users(Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, SortMixIn):
     def __init__(self, coll):
         super().__init__()
-        self.projection_fields = {
-            '_id': 1,
-            'admin': 1,
-            'backend': 1,
-            'backend_ref': 1,
-            'email': 1,
-            'name': 1
-        }
-        self.sort_fields = [
-            ('_id', pymongo.ASCENDING),
-            ('email', pymongo.ASCENDING),
-            ('admin', pymongo.ASCENDING),
-            ('name', pymongo.ASCENDING)
-        ]
+        self.pagination_steps = pagination_from_schema(
+            schema=schemes, path='/users/_search'
+        )
+        self.pagination_limit = self.pagination_steps[-1]
+        self.projection_fields = projection_from_schema(
+            schema=schemes, path='/users/_search'
+        )
+        self.sort_fields = sort_from_schema(
+            schema=schemes, path='/users/_search'
+        )
         self._coll = coll
 
     @staticmethod
@@ -34,8 +34,8 @@ class Users(Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, SortMixIn
     async def check_credentials(self, credentials):
         try:
             password = await self._coll.find_one(
-                filter={'_id': credentials['user'], 'deleting': False},
-                projection={'_id': 0, 'password': 1}
+                filter={'id': credentials['user'], 'deleting': False},
+                projection={'password': 1}
             )
             if not password:
                 raise AuthenticationError
@@ -48,7 +48,7 @@ class Users(Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, SortMixIn
     async def create(self, _id, payload):
         payload['password'] = await self._password(payload['password'])
         payload['deleting'] = False
-        payload['_id'] = _id
+        payload['id'] = _id
         try:
             await self._coll.insert_one(payload)
         except pymongo.errors.DuplicateKeyError:
@@ -59,7 +59,7 @@ class Users(Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, SortMixIn
 
     async def delete(self, _id):
         try:
-            result = await self._coll.delete_one(filter={'_id': _id})
+            result = await self._coll.delete_one(filter={'id': _id})
         except pymongo.errors.ConnectionFailure as err:
             raise MongoConnError(err)
         if result.deleted_count is 0:
@@ -70,7 +70,7 @@ class Users(Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, SortMixIn
         update = {'$set': {'deleting': True}}
         try:
             await self._coll.update_one(
-                filter={'_id': _id},
+                filter={'id': _id},
                 update=update,
             )
         except pymongo.errors.ConnectionFailure as err:
@@ -79,7 +79,7 @@ class Users(Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, SortMixIn
     async def get(self, _id, fields=None):
         try:
             result = await self._coll.find_one(
-                filter={'_id': _id, 'deleting': False},
+                filter={'id': _id, 'deleting': False},
                 projection=self._projection(fields)
             )
         except pymongo.errors.ConnectionFailure as err:
@@ -96,7 +96,7 @@ class Users(Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, SortMixIn
 
     async def search(self, _id=None, fields=None, sort=None, page=None, limit=None):
         query = {'deleting': False}
-        self._filter_re(query, '_id', _id)
+        self._filter_re(query, 'id', _id)
         try:
             cursor = self._coll.find(
                 filter=query,
@@ -120,7 +120,7 @@ class Users(Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, SortMixIn
             update['$set'][k] = v
         try:
             result = await self._coll.find_one_and_update(
-                filter={'_id': _id, 'deleting': False},
+                filter={'id': _id, 'deleting': False},
                 update=update,
                 projection=self._projection(),
                 return_document=pymongo.ReturnDocument.AFTER
@@ -133,7 +133,7 @@ class Users(Format, FilterMixIn, PaginationSkipMixIn, ProjectionMixIn, SortMixIn
 
     async def resource_exists(self, _id):
         try:
-            await self.get(_id=_id, fields='_id')
+            await self.get(_id=_id, fields='id')
             return True
         except ResourceNotFound:
             return False

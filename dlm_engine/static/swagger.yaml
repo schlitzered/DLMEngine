@@ -94,18 +94,19 @@ paths:
         - Locks
       description: Get matching lock
       parameters:
-        - name: lock
+        -
+          name: lock
           in: path
           description: Lock Name
           required: true
           schema:
             type: string
-        - name: fields
+        -
+          name: fields
           in: query
-          description: Filter Attributes that should be returned
+          description: "Filter attributes, valid values: id, acquired_by, acquired_since"
           required: false
-          schema:
-            type: string
+          type: string
       responses:
         "200":
           description: Lock Resource
@@ -115,6 +116,12 @@ paths:
                 $ref: "#/components/schemas/Lock_GET"
         "403":
           description: Insufficient Permissions
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: ID not found
           content:
             "*/*":
               schema:
@@ -135,7 +142,7 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/Lock_POST"
-        description: JSON Document with attributes that should be updated
+        description: JSON resource representation
       responses:
         "200":
           description: Lock Resource
@@ -248,9 +255,9 @@ paths:
           required: true
           schema:
             type: string
-        - name: fields
+        - description: "Filter attributes, valid values: id, permissions, users"
           in: query
-          description: Filter Attributes that should be returned
+          name: fields
           required: false
           schema:
             type: string
@@ -267,12 +274,16 @@ paths:
             "*/*":
               schema:
                 $ref: "#/components/schemas/Error"
+        "404":
+          description: ID not found
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/Error"
     post:
       tags:
         - Permissions
-      description: |-
-        Create a new permission, there can only be one permission object
-        per user id / scope id combination.
+      description: Create a new permission
       parameters:
         - name: permission
           in: path
@@ -285,7 +296,7 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/Permission_POST"
-        description: The resource JSON representation you want to create
+        description: JSON resource representation
       responses:
         "201":
           description: Created resource
@@ -329,6 +340,12 @@ paths:
             "*/*":
               schema:
                 $ref: "#/components/schemas/Permission_GET"
+        "400":
+          description: One or More parameters are invalid
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/Error"
         "403":
           description: Insufficient permission
           content:
@@ -359,28 +376,27 @@ paths:
           required: false
           schema:
             type: string
-        - name: fields
+        - description: "Filter attributes, valid values: id, permissions, users"
           in: query
-          description: Filter Attributes that should be returned
+          name: fields
           required: false
           schema:
             type: string
-        - name: sort
+        - description: "Sort results, prefix with - to invert, valid values: id"
           in: query
-          description: Comma separated list of attributes to sort result, valid values are
-            id, permission and user, prefix with - to change order
+          name: sort
           required: false
           schema:
             type: string
-        - name: page
+        - description: pagination index
           in: query
-          description: pagination index
+          name: page
           required: false
           schema:
             type: integer
-        - name: limit
+        - description: "pagination limit, valid values: 10, 25, 50, 100, 250, 500, 1000"
           in: query
-          description: pagination limit
+          name: limit
           required: false
           schema:
             type: integer
@@ -397,15 +413,64 @@ paths:
             "*/*":
               schema:
                 $ref: "#/components/schemas/Error"
-  "/users/{user}":
-    delete:
+  /users/_search:
+    get:
+      description: Get all matching Users
+      parameters:
+        - description: "filter: regular expression"
+          in: query
+          name: id
+          required: false
+          schema:
+            type: string
+        - description: "Filter attributes, valid values: id, admin, backend, backend_ref,
+            email, name"
+          in: query
+          name: fields
+          required: false
+          schema:
+            type: string
+        - description: "Sort results, prefix with - to invert, valid values: id, email,
+            admin, name"
+          in: query
+          name: sort
+          required: false
+          schema:
+            type: string
+        - description: pagination index
+          in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+        - description: "pagination limit, valid values: 10, 25, 50, 100, 250, 500, 1000"
+          in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of user object
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/User_GETQ"
+        "403":
+          description: Insufficient permission
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/Error"
       tags:
         - Users
+  "/users/{user}":
+    delete:
       description: Delete existing user.
       parameters:
-        - name: user
+        - description: User ID, or _self, which points to the current user
           in: path
-          description: User ID
+          name: user
           required: true
           schema:
             type: string
@@ -424,20 +489,21 @@ paths:
             "*/*":
               schema:
                 $ref: "#/components/schemas/Error"
-    get:
       tags:
         - Users
+    get:
       description: Get get user
       parameters:
-        - name: user
+        - description: User ID, or _self, which points to the current user
           in: path
-          description: User ID
+          name: user
           required: true
           schema:
             type: string
-        - name: fields
+        - description: "Filter attributes, valid values: id, admin, backend, backend_ref,
+            email, name"
           in: query
-          description: Filter Attributes that should be returned
+          name: fields
           required: false
           schema:
             type: string
@@ -460,14 +526,14 @@ paths:
             "*/*":
               schema:
                 $ref: "#/components/schemas/Error"
-    post:
       tags:
         - Users
+    post:
       description: Create a new user, user id must be unique
       parameters:
-        - name: user
+        - description: User ID
           in: path
-          description: User ID
+          name: user
           required: true
           schema:
             type: string
@@ -490,25 +556,35 @@ paths:
             "*/*":
               schema:
                 $ref: "#/components/schemas/Error"
+        "403":
+          description: Insufficient permission
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/Error"
         "409":
           description: ID already exists
           content:
             "*/*":
               schema:
                 $ref: "#/components/schemas/Error"
-    put:
       tags:
         - Users
+    put:
       description: Update existing user.
       parameters:
-        - name: user
+        - description: User ID, or _self, which points to the current user
           in: path
-          description: User ID
+          name: user
           required: true
           schema:
             type: string
       requestBody:
-        $ref: "#/components/requestBodies/User_PUT"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User_PUT"
+        description: JSON Document with attributes that should be updated
       responses:
         "200":
           description: User Resource
@@ -528,122 +604,15 @@ paths:
             "*/*":
               schema:
                 $ref: "#/components/schemas/Error"
-  "/users/{user}/credentials/{credential}":
-    delete:
       tags:
         - Users
-      description: Delete user API credential.
-      parameters:
-        - name: credential
-          in: path
-          description: Credential ID
-          required: true
-          schema:
-            type: string
-        - name: user
-          in: path
-          description: User ID
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Empty response on success
-        "403":
-          description: Insufficient permission
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/Error"
-        "404":
-          description: ID not found
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/Error"
-    get:
-      tags:
-        - Users
-      description: Get User API Credentials Resource
-      parameters:
-        - name: credential
-          in: path
-          description: Credential ID
-          required: true
-          schema:
-            type: string
-        - name: user
-          in: path
-          description: User ID
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Credential Resource
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/Common_Credential_GET"
-        "403":
-          description: Insufficient permission
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/Error"
-        "404":
-          description: ID not found
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/Error"
-    put:
-      tags:
-        - Users
-      description: Update credential description
-      parameters:
-        - name: credential
-          in: path
-          description: Credential ID
-          required: true
-          schema:
-            type: string
-        - name: user
-          in: path
-          description: User ID
-          required: true
-          schema:
-            type: string
-      requestBody:
-        $ref: "#/components/requestBodies/Common_Credential_POST"
-      responses:
-        "200":
-          description: Credential Resource
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/Common_Credential_GET"
-        "403":
-          description: Insufficient permission
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/Error"
-        "404":
-          description: ID not found
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/Error"
   "/users/{user}/credentials":
     get:
-      tags:
-        - Users
       description: Get all credentials for this user
       parameters:
-        - name: user
+        - description: User ID, or _self, which points to the current user
           in: path
-          description: User ID
+          name: user
           required: true
           schema:
             type: string
@@ -666,19 +635,23 @@ paths:
             "*/*":
               schema:
                 $ref: "#/components/schemas/Error"
-    post:
       tags:
         - Users
+    post:
       description: Create a new set of API credentials for this user
       parameters:
-        - name: user
+        - description: User ID, or _self, which points to the current user
           in: path
-          description: User ID
+          name: user
           required: true
           schema:
             type: string
       requestBody:
-        $ref: "#/components/requestBodies/Common_Credential_POST2"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Common_Credential_POST"
+        description: Description of the credential that is beeing created
       responses:
         "200":
           description: Scope Credentials Resource
@@ -698,127 +671,21 @@ paths:
             "*/*":
               schema:
                 $ref: "#/components/schemas/Error"
-  /users/_search:
-    get:
       tags:
         - Users
-      description: Get all matching Users
-      parameters:
-        - name: id
-          in: query
-          description: "filter: regular expression"
-          required: false
-          schema:
-            type: string
-        - name: fields
-          in: query
-          description: Filter Attributes that should be returned
-          required: false
-          schema:
-            type: string
-        - name: sort
-          in: query
-          description: Comma separated list of attributes to sort result, valid values are
-            id, email, name, admin, prefix with - to change order
-          required: false
-          schema:
-            type: string
-        - name: page
-          in: query
-          description: pagination index
-          required: false
-          schema:
-            type: integer
-        - name: limit
-          in: query
-          description: pagination limit
-          required: false
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: List of user object
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/User_GETQ"
-        "403":
-          description: Insufficient permission
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/Error"
-  /users/_self:
+  "/users/{user}/credentials/{credential}":
     delete:
-      tags:
-        - Users
-      description: Delete existing user.
-      responses:
-        "200":
-          description: Empty response on success
-        "403":
-          description: Insufficient permission
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/Error"
-        "404":
-          description: ID not found
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/Error"
-    get:
-      tags:
-        - Users
-      description: Return user resource, of the user executing this request.
-      responses:
-        "201":
-          description: Created resource
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/User_GET"
-        "404":
-          description: ID not found
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/Error"
-    put:
-      tags:
-        - Users
-      description: Update existing user.
-      requestBody:
-        $ref: "#/components/requestBodies/User_PUT"
-      responses:
-        "200":
-          description: User Resource
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/User_GET"
-        "403":
-          description: Insufficient permission
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/Error"
-        "404":
-          description: ID not found
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/Error"
-  "/users/_self/credentials/{credential}":
-    delete:
-      tags:
-        - Users
       description: Delete user API credential.
       parameters:
-        - name: credential
+        - description: Credential ID
           in: path
-          description: Credential ID
+          name: credential
+          required: true
+          schema:
+            type: string
+        - description: User ID, or _self, which points to the current user
+          in: path
+          name: user
           required: true
           schema:
             type: string
@@ -837,14 +704,20 @@ paths:
             "*/*":
               schema:
                 $ref: "#/components/schemas/Error"
-    get:
       tags:
         - Users
+    get:
       description: Get User API Credentials Resource
       parameters:
-        - name: credential
+        - description: Credential ID
           in: path
-          description: Credential ID
+          name: credential
+          required: true
+          schema:
+            type: string
+        - description: User ID, or _self, which points to the current user
+          in: path
+          name: user
           required: true
           schema:
             type: string
@@ -867,19 +740,29 @@ paths:
             "*/*":
               schema:
                 $ref: "#/components/schemas/Error"
+      tags:
+        - Users
     put:
-      tags:
-        - Users
-      description: update credential description
+      description: Update credential description
       parameters:
-        - name: credential
+        - description: Credential ID
           in: path
-          description: Credential ID
+          name: credential
+          required: true
+          schema:
+            type: string
+        - description: User ID, or _self, which points to the current user
+          in: path
+          name: user
           required: true
           schema:
             type: string
       requestBody:
-        $ref: "#/components/requestBodies/Common_Credential_POST"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Common_Credential_POST"
+        description: updated description
       responses:
         "200":
           description: Credential Resource
@@ -899,55 +782,8 @@ paths:
             "*/*":
               schema:
                 $ref: "#/components/schemas/Error"
-  /users/_self/credentials:
-    get:
       tags:
         - Users
-      description: Get all credentials for this user
-      responses:
-        "200":
-          description: Document with all credentials for this scope
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/Common_Credential_GETQ"
-        "403":
-          description: Insufficient permission
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/Error"
-        "404":
-          description: ID not found
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/Error"
-    post:
-      tags:
-        - Users
-      description: Create a new set of API credentials for this user
-      requestBody:
-        $ref: "#/components/requestBodies/Common_Credential_POST2"
-      responses:
-        "200":
-          description: Scope Credentials Resource
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/Common_Credential_POST_Result"
-        "403":
-          description: Insufficient permission
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/Error"
-        "404":
-          description: ID not found
-          content:
-            "*/*":
-              schema:
-                $ref: "#/components/schemas/Error"
 servers:
   - url: /api/v1
 components:

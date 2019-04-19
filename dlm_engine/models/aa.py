@@ -21,7 +21,7 @@ class AuthenticationAuthorization(object):
         _id = request.headers.get('X-ID', False)
         secret = request.headers.get('X-SECRET', False)
         if _id and secret:
-            result['_id'] = _id
+            result['id'] = _id
             result['secret'] = secret
             return result
         raise CredentialError
@@ -56,7 +56,7 @@ class AuthenticationAuthorization(object):
                 await self.permissions.check(
                     user=user,
                     permission=permission,
-                    fields='_id'
+                    fields='id'
                 )
                 return True
             except PermError as err:

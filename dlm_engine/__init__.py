@@ -311,8 +311,28 @@ class DeployerRest:
         self._setup_mongo_pools()
         self._setup_mongo_colls()
 
+        c_locks = self._mongo_colls["locks"]
+        await c_locks.create_index([
+            ("id", pymongo.ASCENDING)
+        ], unique=True)
         c_permissions = self._mongo_colls["permissions"]
         await c_permissions.create_index([
-            ("users", pymongo.ASCENDING),
+            ("id", pymongo.ASCENDING)
+        ], unique=True)
+        await c_permissions.create_index([
             ("permissions", pymongo.ASCENDING),
         ])
+        await c_permissions.create_index([
+            ("users", pymongo.ASCENDING),
+        ])
+        c_users = self._mongo_colls["users"]
+        await c_users.create_index([
+            ("id", pymongo.ASCENDING)
+        ], unique=True)
+
+        c_users_credentials = self._mongo_colls["users_credentials"]
+        await c_users_credentials.create_index([
+            ("id", pymongo.ASCENDING),
+            ("owner", pymongo.ASCENDING)
+        ], unique=True)
+

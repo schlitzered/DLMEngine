@@ -35,16 +35,16 @@ from dlm_engine.schemes.config_main import CHECK_CONFIG_REDISPOOL
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Deployer Rest API")
+    parser = argparse.ArgumentParser(description="DLMEngine Rest API")
 
     parser.add_argument("--cfg", dest="cfg", action="store",
-                        default="/etc/deployer/deployer.ini",
+                        default="/etc/dlm_engine/dlm_engine.ini",
                         help="Full path to configuration")
 
     subparsers = parser.add_subparsers(help='commands', dest='method')
     subparsers.required = True
 
-    run_parser = subparsers.add_parser('run', help='Start Deployer Rest API API')
+    run_parser = subparsers.add_parser('run', help='Start DLMEngine Rest API API')
     run_parser.set_defaults(method='run')
 
     indicies_parser = subparsers.add_parser('indices', help='create indices and exit')
@@ -55,25 +55,25 @@ def main():
 
     parsed_args = parser.parse_args()
 
-    deployer_restapi = DeployerRest(
+    dlm_engine_restapi = DLMEngineRest(
         cfg=parsed_args.cfg,
     )
 
     if parsed_args.method == 'run':
-        deployer_restapi.run()
+        dlm_engine_restapi.run()
 
     elif parsed_args.method == 'indices':
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(deployer_restapi.manage_indices())
+        loop.run_until_complete(dlm_engine_restapi.manage_indices())
         loop.close()
 
     elif parsed_args.method == 'create_admin':
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(deployer_restapi.create_admin())
+        loop.run_until_complete(dlm_engine_restapi.create_admin())
         loop.close()
 
 
-class DeployerRest:
+class DLMEngineRest:
     def __init__(self, cfg):
         self._config_file = cfg
         self._config = configparser.ConfigParser()

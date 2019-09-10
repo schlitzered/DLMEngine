@@ -25,7 +25,7 @@ class Authenticate:
         await self.sessions.delete(request)
         response = Response()
         response.set_status(204)
-        response.del_cookie('DEPLOYER_SESSION')
+        response.del_cookie('SESSION')
         return response
 
     async def get(self, request):
@@ -42,7 +42,7 @@ class Authenticate:
         response.content_type = 'application/json'
         response.set_status(201)
         response.set_cookie(
-            'DEPLOYER_SESSION', result['data']['id'],
+            'SESSION', result['data']['id'],
             httponly=True
         )
         return response

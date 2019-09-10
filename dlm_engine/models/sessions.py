@@ -43,11 +43,11 @@ class Sessions(Format):
         return self._format({'id': sid})
 
     async def delete(self, request):
-        sid = request.cookies.get('DEPLOYER_SESSION')
+        sid = request.cookies.get('SESSION')
         if not sid:
             return
         try:
-            sid = request.cookies.get('DEPLOYER_SESSION')
+            sid = request.cookies.get('SESSION')
         except KeyError:
             raise SessionError
         if not self.redis:
@@ -55,7 +55,7 @@ class Sessions(Format):
         await self.redis.delete(sid)
 
     async def get_user(self, request):
-        sid = request.cookies.get('DEPLOYER_SESSION')
+        sid = request.cookies.get('SESSION')
         if not sid:
             raise SessionError
         if not self.redis:

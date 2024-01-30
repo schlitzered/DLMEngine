@@ -8,8 +8,6 @@ from authlib.integrations.starlette_client import OAuth
 import bonsai.asyncio
 import httpx
 from fastapi import FastAPI
-from fastapi.openapi.docs import get_swagger_ui_html
-from fastapi.responses import HTMLResponse
 from fastapi_versionizer import Versionizer
 from motor.motor_asyncio import AsyncIOMotorClient
 from starlette.middleware.sessions import SessionMiddleware
@@ -38,9 +36,7 @@ from dlm_engine.model.users import UserPost
 settings = Settings(_env_file=".env")
 
 app = FastAPI(title="dlm_engine", version="0.0.0")
-app.add_middleware(
-    SessionMiddleware, secret_key=settings.app.secretkey, max_age=3600
-)
+app.add_middleware(SessionMiddleware, secret_key=settings.app.secretkey, max_age=3600)
 
 
 @app.middleware("http")
@@ -114,7 +110,7 @@ async def startup_event():
         app=app,
         prefix_format="/api/v{major}",
         include_versions_route=True,
-        semantic_version_format='{major}',
+        semantic_version_format="{major}",
     ).versionize()
 
     oauth_router = dlm_engine.oauth.Oauth(
@@ -145,7 +141,7 @@ async def setup_admin_user(log: logging.Logger, crud_users: CrudUsers):
             ),
             fields=["_id", "admin", "email", "name"],
         )
-        log.info(f"creating admin user, done")
+        log.info("creating admin user, done")
 
 
 def setup_ldap(log: logging.Logger, ldap_settings: SettingsLdap):

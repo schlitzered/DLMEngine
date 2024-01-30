@@ -1,6 +1,5 @@
 import typing
 
-from pydantic import ConfigDict
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -49,4 +48,4 @@ class Settings(BaseSettings):
     mongodb: Mongodb = Mongodb()
     oauth: dict[str, OAuth] = dict()
     model_config = SettingsConfigDict(env_file=".env", env_nested_delimiter="_")
-    #model_config = SettingsConfigDict(env_file=".env")
+    # model_config = SettingsConfigDict(env_file=".env")

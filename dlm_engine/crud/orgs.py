@@ -64,7 +64,6 @@ class CrudOrgs(CrudMongo):
     ) -> OrgGetMulti:
         query = {}
         self._filter_re(query, "id", _id, _id_filter)
-        self.log.info(query)
 
         result = await self._search(
             query=query,

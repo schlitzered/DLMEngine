@@ -1,6 +1,5 @@
 import logging
 from typing import Set
-from typing import Union
 
 from fastapi import APIRouter
 from fastapi import Query
@@ -103,7 +102,7 @@ class ApiUsers:
         request: Request,
         data: UserPost,
         user_id: str,
-        fields: Union[Set[filter_literal], None] = Query(default=filter_list),
+        fields: Set[filter_literal] = Query(default=filter_list),
     ):
         await self.authorize.require_admin(request=request)
         return await self.crud_users.create(
@@ -122,7 +121,7 @@ class ApiUsers:
         self,
         user_id: str,
         request: Request,
-        fields: Union[Set[filter_literal], None] = Query(default=filter_list),
+        fields: Set[filter_literal] = Query(default=filter_list),
     ):
         if user_id == "_self":
             user_id = await self.authorize.get_user(request=request)
@@ -136,9 +135,9 @@ class ApiUsers:
         self,
         request: Request,
         user_id: str = Query(description="filter: regular_expressions", default=None),
-        fields: Union[Set[filter_literal], None] = Query(default=filter_list),
-        sort: Union[sort_literal, None] = Query(default="id"),
-        sort_order: Union[sort_order_literal, None] = Query(default="ascending"),
+        fields: Set[filter_literal] = Query(default=filter_list),
+        sort: sort_literal = Query(default="id"),
+        sort_order: sort_order_literal = Query(default="ascending"),
         page: int = Query(default=0, ge=0, description="pagination index"),
         limit: int = Query(
             default=10,
@@ -163,7 +162,7 @@ class ApiUsers:
         data: UserPut,
         user_id: str,
         request: Request,
-        fields: Union[Set[filter_literal], None] = Query(default=filter_list),
+        fields: Set[filter_literal] = Query(default=filter_list),
     ):
         if user_id == "_self":
             user_id = await self.authorize.get_user(request=request)

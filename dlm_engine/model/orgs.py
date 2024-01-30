@@ -2,18 +2,18 @@ from typing import get_args as typing_get_args
 from typing import List
 from typing import Literal
 from typing import Optional
-from pydantic import BaseModel
-from pydantic import constr
+from pydantic import StringConstraints, BaseModel
 from pydantic import StrictStr
 
 from dlm_engine.model.common import MetaMulti
+from typing_extensions import Annotated
 
 filter_literal = Literal[
     "id",
     "description",
 ]
 
-filter_list = set(typing_get_args(filter_literal))
+filter_list = list(set(typing_get_args(filter_literal)))
 
 sort_literal = Literal["id"]
 sort_order_literal = Literal[
@@ -22,8 +22,8 @@ sort_order_literal = Literal[
 ]
 
 
-OrgId = constr(regex="([a-zA-Z0-9]{3,64})")
-OrgIdAll = constr(regex="([a-zA-Z0-9]{3,64}|_all)")
+OrgId = Annotated[str, StringConstraints(pattern="([a-zA-Z0-9]{3,64})")]
+OrgIdAll = Annotated[str, StringConstraints(pattern="([a-zA-Z0-9]{3,64}|_all)")]
 
 
 class OrgGet(BaseModel):

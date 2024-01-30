@@ -2,7 +2,7 @@ import typing
 
 from pydantic import ConfigDict
 from pydantic import BaseModel
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 log_levels = typing.Literal[
     "CRITICAL", "FATAL", "ERROR", "WARN", "WARNING", "INFO", "DEBUG"
@@ -33,11 +33,20 @@ class OAuth(BaseModel):
     url: OAuthUrl
 
 
+class Mongodb(BaseModel):
+    url: str = "mongodb://localhost:27017"
+    database: str = "dlm_engine"
+
+
+class App(BaseModel):
+    loglevel: log_levels = "INFO"
+    secretkey: str = ""
+
+
 class Settings(BaseSettings):
-    app_loglevel: log_levels = "INFO"
+    app: App = App()
     ldap: Ldap = Ldap()
-    mongodb_main_url: str = "mongodb://localhost:27017"
-    mongodb_main_database: str = "dlm_engine"
-    session_secret_key: str
+    mongodb: Mongodb = Mongodb()
     oauth: dict[str, OAuth] = dict()
-    model_config = ConfigDict(env_file=".env", env_nested_delimiter="_")
+    model_config = SettingsConfigDict(env_file=".env", env_nested_delimiter="_")
+    #model_config = SettingsConfigDict(env_file=".env")

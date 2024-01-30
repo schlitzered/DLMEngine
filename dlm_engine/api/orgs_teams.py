@@ -1,6 +1,5 @@
 import logging
 from typing import Set
-from typing import Union
 
 from fastapi import APIRouter
 from fastapi import Query
@@ -112,7 +111,7 @@ class ApiOrgsTeams:
         data: OrgTeamPost,
         team_id: str,
         org_id: OrgId,
-        fields: Union[Set[filter_literal], None] = Query(default=filter_list),
+        fields: Set[filter_literal] = Query(default=filter_list),
     ):
         await self.authorize.require_org_admin(request=request, org_id=org_id)
         await self.crud_orgs.resource_exists(_id=org_id)
@@ -151,7 +150,7 @@ class ApiOrgsTeams:
         team_id: str,
         org_id: OrgId,
         request: Request,
-        fields: Union[Set[filter_literal], None] = Query(default=filter_list),
+        fields: Set[filter_literal] = Query(default=filter_list),
     ):
         await self.authorize.require_org_admin(request=request, org_id=org_id)
         await self.crud_orgs.resource_exists(_id=org_id)
@@ -170,9 +169,9 @@ class ApiOrgsTeams:
             description="filter: regular_expressions", default=None
         ),
         users: str = Query(description="filter: regular_expressions", default=None),
-        fields: Union[Set[filter_literal], None] = Query(default=filter_list),
-        sort: Union[sort_literal, None] = Query(default="id"),
-        sort_order: Union[sort_order_literal, None] = Query(default="ascending"),
+        fields: Set[filter_literal] = Query(default=filter_list),
+        sort: sort_literal = Query(default="id"),
+        sort_order: sort_order_literal = Query(default="ascending"),
         page: int = Query(default=0, ge=0, description="pagination index"),
         limit: int = Query(
             default=10,
@@ -203,7 +202,7 @@ class ApiOrgsTeams:
         team_id: str,
         org_id: OrgId,
         request: Request,
-        fields: Union[Set[filter_literal], None] = Query(default=filter_list),
+        fields: Set[filter_literal] = Query(default=filter_list),
     ):
         await self.authorize.require_org_admin(request=request, org_id=org_id)
         await self.crud_orgs.resource_exists(_id=org_id)

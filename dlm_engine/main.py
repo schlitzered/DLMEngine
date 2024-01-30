@@ -10,7 +10,7 @@ import httpx
 from fastapi import FastAPI
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import HTMLResponse
-from fastapi_versionizer import versionize
+from fastapi_versionizer import Versionizer
 from motor.motor_asyncio import AsyncIOMotorClient
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -39,7 +39,7 @@ settings = Settings(_env_file=".env")
 
 app = FastAPI(title="dlm_engine", version="0.0.0")
 app.add_middleware(
-    SessionMiddleware, secret_key=settings.session_secret_key, max_age=3600
+    SessionMiddleware, secret_key=settings.app.secretkey, max_age=3600
 )
 
 
@@ -54,7 +54,8 @@ async def add_process_time_header(request, call_next):
 
 @app.on_event("startup")
 async def startup_event():
-    log = setup_logging(settings.app_loglevel)
+    log = setup_logging(settings.app.loglevel)
+    log.info(settings)
 
     http = httpx.AsyncClient()
 
@@ -65,7 +66,7 @@ async def startup_event():
 
     log.info("adding routes")
     mongo_db = setup_mongodb(
-        log=log, database=settings.mongodb_main_database, url=settings.mongodb_main_url
+        log=log, database=settings.mongodb.database, url=settings.mongodb.url
     )
 
     oauth_providers = setup_oauth_providers(
@@ -109,26 +110,17 @@ async def startup_event():
         http=http,
     )
     app.include_router(api_router.router)
-    versionize(
+    Versionizer(
         app=app,
         prefix_format="/api/v{major}",
-        version_format="{major}",
-        docs_url="/docs",
-        redoc_url="/redoc",
-    )
+        include_versions_route=True,
+        semantic_version_format='{major}',
+    ).versionize()
 
     oauth_router = dlm_engine.oauth.Oauth(
         log=log, crud_users=crud_users, http=http, oauth_providers=oauth_providers
     )
     app.include_router(oauth_router.router)
-
-    @app.get("/docs", response_class=HTMLResponse, include_in_schema=False)
-    def get_api_versions() -> HTMLResponse:
-        return get_swagger_ui_html(
-            openapi_url=f"{app.openapi_url}",
-            title=f"{app.title}",
-            swagger_ui_parameters={"defaultModelsExpandDepth": -1},
-        )
 
     log.info("adding routes, done")
     await setup_admin_user(log=log, crud_users=crud_users)

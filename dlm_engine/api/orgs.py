@@ -1,6 +1,5 @@
 import logging
 from typing import Set
-from typing import Union
 
 from fastapi import APIRouter
 from fastapi import Query
@@ -112,7 +111,7 @@ class ApiOrgs:
         request: Request,
         data: OrgPost,
         org_id: OrgId,
-        fields: Union[Set[filter_literal], None] = Query(default=filter_list),
+        fields: Set[filter_literal] = Query(default=filter_list),
     ):
         user = await self.authorize.get_user(request=request)
         result = await self.crud_orgs.create(
@@ -141,7 +140,7 @@ class ApiOrgs:
         self,
         org_id: OrgId,
         request: Request,
-        fields: Union[Set[filter_literal], None] = Query(default=filter_list),
+        fields: Set[filter_literal] = Query(default=filter_list),
     ):
         await self.authorize.require_org_member(request=request, org_id=org_id)
         return await self.crud_orgs.get(_id=org_id, fields=list(fields))
@@ -151,9 +150,9 @@ class ApiOrgs:
         self,
         request: Request,
         org_id: str = Query(description="filter: regular_expressions", default=None),
-        fields: Union[Set[filter_literal], None] = Query(default=filter_list),
-        sort: Union[sort_literal, None] = Query(default="id"),
-        sort_order: Union[sort_order_literal, None] = Query(default="ascending"),
+        fields: Set[filter_literal] = Query(default=filter_list),
+        sort: sort_literal = Query(default="id"),
+        sort_order: sort_order_literal = Query(default="ascending"),
         page: int = Query(default=0, ge=0, description="pagination index"),
         limit: int = Query(
             default=10,
@@ -184,7 +183,7 @@ class ApiOrgs:
         data: OrgPut,
         org_id: OrgId,
         request: Request,
-        fields: Union[Set[filter_literal], None] = Query(default=filter_list),
+        fields: Set[filter_literal] = Query(default=filter_list),
     ):
         await self.authorize.require_org_admin(request=request, org_id=org_id)
         return await self.crud_orgs.update(

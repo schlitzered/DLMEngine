@@ -1,6 +1,5 @@
 import logging
 from typing import Set
-from typing import Union
 
 from fastapi import APIRouter
 from fastapi import Query
@@ -138,7 +137,7 @@ class ApiUsersCredentials:
         request: Request,
         user_id: str,
         credential_id: str,
-        fields: Union[Set[filter_literal], None] = Query(default=filter_list),
+        fields: Set[filter_literal] = Query(default=filter_list),
     ):
         if user_id == "_self":
             user_id = await self.authorize.get_user(request=request)
@@ -154,9 +153,9 @@ class ApiUsersCredentials:
         self,
         request: Request,
         user_id: str,
-        fields: Union[Set[filter_literal], None] = Query(default=filter_list),
-        sort: Union[sort_literal, None] = Query(default="id"),
-        sort_order: Union[sort_order_literal, None] = Query(default="ascending"),
+        fields: Set[filter_literal] = Query(default=filter_list),
+        sort: sort_literal = Query(default="id"),
+        sort_order: sort_order_literal = Query(default="ascending"),
         page: int = Query(default=0, ge=0, description="pagination index"),
         limit: int = Query(
             default=10,
@@ -187,7 +186,7 @@ class ApiUsersCredentials:
         user_id: str,
         credential_id: str,
         data: CredentialPut,
-        fields: Union[Set[filter_literal], None] = Query(default=filter_list),
+        fields: Set[filter_literal] = Query(default=filter_list),
     ):
         if user_id == "_self":
             user_id = await self.authorize.get_user(request=request)

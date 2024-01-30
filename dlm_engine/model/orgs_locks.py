@@ -3,12 +3,12 @@ from typing import get_args as typing_get_args
 from typing import List
 from typing import Literal
 from typing import Optional
-from pydantic import BaseModel
-from pydantic import constr
+from pydantic import StringConstraints, BaseModel
 from pydantic import StrictStr
 
 from dlm_engine.model.common import MetaMulti
 from dlm_engine.model.orgs import OrgId
+from typing_extensions import Annotated
 
 filter_literal = Literal[
     "id",
@@ -30,7 +30,7 @@ sort_order_literal = Literal[
 ]
 
 
-OrgLockId = constr(regex="^([a-zA-Z0-9]+(|_))*$")
+OrgLockId = Annotated[str, StringConstraints(pattern="^([a-zA-Z0-9]+(|_))*$")]
 
 
 class OrgLockDelete(BaseModel):

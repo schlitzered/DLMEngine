@@ -29,12 +29,6 @@ License: MIT (see LICENSE for details)
             'Programming Language :: Python :: 3'
     ],
     install_requires=[
-        "aiohttp",
-        "motor",
-        "jsonschema",
-        "pyyaml",
-        "passlib",
-        "aioredis",
     ],
     keywords=[
         'dlm', 'distributes lock manager'

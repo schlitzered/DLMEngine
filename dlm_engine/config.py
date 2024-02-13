@@ -8,6 +8,13 @@ log_levels = typing.Literal[
 ]
 
 
+class App(BaseModel):
+    loglevel: log_levels = "INFO"
+    secretkey: str = ""
+    host: str = "127.0.0.1"
+    port: int = 8000
+
+
 class Ldap(BaseModel):
     url: typing.Optional[str] = None
     binddn: typing.Optional[str] = None
@@ -37,15 +44,9 @@ class Mongodb(BaseModel):
     database: str = "dlm_engine"
 
 
-class App(BaseModel):
-    loglevel: log_levels = "INFO"
-    secretkey: str = ""
-
-
 class Settings(BaseSettings):
     app: App = App()
     ldap: Ldap = Ldap()
     mongodb: Mongodb = Mongodb()
     oauth: dict[str, OAuth] = dict()
     model_config = SettingsConfigDict(env_file=".env", env_nested_delimiter="_")
-    # model_config = SettingsConfigDict(env_file=".env")

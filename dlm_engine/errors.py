@@ -15,20 +15,6 @@ class DuplicateResource(HTTPException):
         )
 
 
-class FlowError(HTTPException):
-    def __init__(self, details=None):
-        if not details:
-            details = "Flow Error"
-        super(FlowError, self).__init__(status_code=400, detail=details)
-
-
-class ResourceInUse(HTTPException):
-    def __init__(self, details=None):
-        if not details:
-            details = "Resource in use"
-        super(ResourceInUse, self).__init__(status_code=400, detail=details)
-
-
 class ResourceNotFound(HTTPException):
     def __init__(self, details=None):
         if not details:

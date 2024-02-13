@@ -79,8 +79,7 @@ class CrudMongo(
             raise BackendError
 
     async def _get(self, query: dict, fields: list) -> dict:
-        # todo: after migration, adjust all documents to have this field
-        # payload["deleting"] = False
+        query["deleting"] = False
         try:
             result = await self._coll.find_one(
                 filter=query, projection=self._projection(fields)
@@ -95,9 +94,10 @@ class CrudMongo(
         return self._format(result)
 
     async def _get_by_obj_id(self, _id, fields: list) -> dict:
-        # todo: after migration, adjust all documents to have this field
-        # query["deleting"] = False
-        query = {"_id": _id}
+        query = {
+            "_id": _id,
+            "deleting": False,
+        }
         return await self._get(query=query, fields=fields)
 
     async def _resource_exists(self, query: dict) -> ObjectId:
@@ -113,8 +113,7 @@ class CrudMongo(
         page: typing.Optional[int] = None,
         limit: typing.Optional[int] = None,
     ) -> dict:
-        # todo: after migration, adjust all documents to have this field
-        # query["deleting"] = False
+        query["deleting"] = False
         try:
             count = await self._coll.count_documents(filter=query)
             cursor = self._coll.find(filter=query, projection=self._projection(fields))
@@ -130,8 +129,7 @@ class CrudMongo(
             raise BackendError
 
     async def _update(self, query: dict, payload: dict, fields: list) -> dict:
-        # todo: after migration, adjust all documents to have this field
-        # query["deleting"] = False
+        query["deleting"] = False
         update = {"$set": {}}
         for k, v in payload.items():
             if v is None:

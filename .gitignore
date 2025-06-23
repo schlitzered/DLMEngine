@@ -1,5 +1,6 @@
 .idea
 .env
+dist
 venv
 *log*
 *pyc

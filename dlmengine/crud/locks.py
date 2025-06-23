@@ -29,9 +29,6 @@ class CrudLocks(CrudMongo):
         self.log.info(f"creating {self.resource_type} indices")
         await self.coll.create_index([("id", pymongo.ASCENDING)], unique=True)
         await self.coll.create_index([("deleting", pymongo.ASCENDING)])
-        await self.coll.update_many(
-            {"deleting": {"$exists": False}}, {"$set": {"deleting": False}}
-        )
         self.log.info(f"creating {self.resource_type} indices, done")
 
     async def create(

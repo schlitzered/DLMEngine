@@ -38,12 +38,6 @@ class CrudCredentials(CrudMongo):
         await self.coll.create_index(
             [("id", pymongo.ASCENDING), ("owner", pymongo.ASCENDING)], unique=True
         )
-        await self.coll.update_many(
-            {"deleting": {"$exists": False}}, {"$set": {"deleting": False}}
-        )
-        await self.coll.update_many(
-            {"id": {"$type": "binData"}}, [{"$set": {"id": {"$toString": "$id"}}}]
-        )
         self.log.info(f"creating {self.resource_type} indices, done")
 
     async def check_credential(self, request: Request):

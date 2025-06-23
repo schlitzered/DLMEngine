@@ -220,16 +220,7 @@ async def add_process_time_header(request, call_next):
 
 
 def main():
-    if settings.app.ssl:
-        uvicorn.run(
-            app,
-            host=settings.app.host,
-            port=settings.app.port,
-            ssl_certfile=settings.app.ssl.cert,
-            ssl_keyfile=settings.app.ssl.key,
-        )
-    else:
-        uvicorn.run(app, host=settings.app.host, port=settings.app.port)
+    uvicorn.run(app, host=settings.app.host, port=settings.app.port)
 
 
 if __name__ == "__main__":

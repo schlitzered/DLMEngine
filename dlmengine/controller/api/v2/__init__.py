@@ -26,7 +26,7 @@ class ControllerApiV2:
         log: logging.Logger,
         authorize: Authorize,
         crud_ldap: CrudLdap,
-        crud_nodes: CrudLocks,
+        crud_locks: CrudLocks,
         crud_permissions: CrudPermissions,
         crud_users: CrudUsers,
         crud_users_credentials: CrudCredentials,
@@ -49,7 +49,7 @@ class ControllerApiV2:
             ControllerApiV2Locks(
                 log=log,
                 authorize=authorize,
-                crud_locks=crud_nodes,
+                crud_locks=crud_locks,
             ).router,
             responses={404: {"description": "Not found"}},
         )

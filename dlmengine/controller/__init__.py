@@ -37,7 +37,7 @@ class Controller:
                 log=log,
                 authorize=authorize,
                 crud_ldap=crud_ldap,
-                crud_nodes=crud_locks,
+                crud_locks=crud_locks,
                 crud_permissions=crud_permissions,
                 crud_users=crud_users,
                 crud_users_credentials=crud_users_credentials,

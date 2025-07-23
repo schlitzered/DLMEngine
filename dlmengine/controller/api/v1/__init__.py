@@ -14,7 +14,7 @@ class ControllerApiV1:
         self,
         log: logging.Logger,
         authorize: Authorize,
-        crud_nodes: CrudLocks,
+        crud_locks: CrudLocks,
     ):
         self._router = APIRouter()
         self._log = log
@@ -23,7 +23,7 @@ class ControllerApiV1:
             ControllerApiV1Locks(
                 log=log,
                 authorize=authorize,
-                crud_locks=crud_nodes,
+                crud_locks=crud_locks,
             ).router,
             responses={404: {"description": "Not found"}},
         )
